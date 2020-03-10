@@ -89,11 +89,15 @@ func NewServer(settings *SConfig) Server {
 //Serve ..
 func (s *serverHolder) Serve() error {
 
-	if s.CC != nil && strings.Contains(s.Network, socketcore.QUIC) {
+	log.Println("which network: ", s.Network, s.CC)
+
+	if s.CC == nil && strings.Contains(s.Network, socketcore.QUIC) {
 		log.Println("server run on " + s.ServerAddress + " with quic protocol.")
 		s.runQuicServer()
 		return nil
 	}
+
+	// to TCP
 	log.Println("server run on " + s.ServerAddress + " with tcp protocol.")
 	l, err := net.Listen("tcp", s.ServerAddress)
 	if err != nil {
@@ -324,7 +328,6 @@ func (s *serverHolder) responseCommandConnect(conn net.Conn, cmd []byte) (net.Co
 			log.Println("build socks client failed ", cmd)
 			return nil, err
 		}
-
 	} else {
 		target, err = s.buildClient(conn, aocks)
 		if err != nil {
@@ -378,7 +381,7 @@ func (s *serverHolder) buildClient(conn net.Conn, sa *socketcore.Socks5Addr) (ne
 func (s *serverHolder) buildSocksClient(conn net.Conn, socks *socketcore.Socks5Addr) (net.Conn, error) {
 	defer utils.Trace("buildSocksClient")()
 	client := socks5client.NewClient(s.CC)
-	return client.Dial("tcp", socks.String())
+	return client.Dial(s.CC.Network, socks.String())
 }
 
 func (s *serverHolder) echoHello(conn net.Conn) error {

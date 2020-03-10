@@ -47,7 +47,7 @@ func FormatProtocol(p string) string {
 	p = strings.ToLower(p)
 	p = strings.Trim(p, " ")
 	r := "tcp"
-	if strings.Compare("quic", p) == 0 {
+	if strings.Contains("quic", p) {
 		r = "quic"
 	}
 	return r

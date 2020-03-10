@@ -4,7 +4,7 @@
     "quic_port": 9443,
     "local": "127.0.0.1",
     "local_port": 9023,
-    "which": "quic",
+    "which": "tcp",
     "method": "RAW",   
     "password": "Evan$%#@!#$@!123",
     "timeout": 600

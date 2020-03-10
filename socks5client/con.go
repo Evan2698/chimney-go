@@ -9,33 +9,16 @@ import (
 	"net"
 	"strings"
 
-	"github.com/lucas-clemente/quic-go"
+	quic "github.com/lucas-clemente/quic-go"
 )
 
 func buildGeneralSocket(host, network string, tm uint32) (con net.Conn, err error) {
 	defer utils.Trace("buildGeneralSocket")()
 
-	if strings.Contains("quic", network) {
-		log.Println("quic connect:  ", host)
-		tlsConf := &tls.Config{
-			InsecureSkipVerify: true,
-			NextProtos:         []string{socketcore.QuicProtocolName},
-		}
+	log.Println("function: ", host, network)
 
-		session, err := quic.DialAddr(host, tlsConf, nil)
-		if err != nil {
-			log.Println("create quick socket session failed", err)
-			return nil, err
-		}
-		stream, err := session.OpenStreamSync(context.Background())
-		if err != nil {
-			session.Close()
-			log.Println("create quick socket stream failed", err)
-			return nil, err
-		}
-		log.Print("create socket(quic) socket success!")
-		v := socketcore.NewClientSocket(session, stream)
-		return v, nil
+	if strings.Contains("quic", network) {
+		return buildQuicSocket(host, network, tm)
 	}
 
 	log.Println("builcConnect: ", host)
@@ -44,4 +27,28 @@ func buildGeneralSocket(host, network string, tm uint32) (con net.Conn, err erro
 		socketcore.SetSocketTimeout(con, tm)
 	}
 	return con, err
+}
+
+func buildQuicSocket(host, network string, tm uint32) (con net.Conn, err error) {
+	log.Println("quic connect:  ", host, network)
+	tlsConf := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{socketcore.QuicProtocolName},
+	}
+
+	session, err := quic.DialAddr(host, tlsConf, &quic.Config{})
+	if err != nil {
+		log.Println("create quick socket session failed", err)
+		return nil, err
+	}
+	stream, err := session.OpenStreamSync(context.Background())
+	if err != nil {
+		session.CloseWithError(0, "failed")
+		log.Println("create quick socket stream failed", err)
+		return nil, err
+	}
+	log.Print("create socket(quic) socket success!")
+	v := socketcore.NewClientSocket(session, stream)
+	socketcore.SetSocketTimeout(v, tm)
+	return v, nil
 }

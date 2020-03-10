@@ -52,11 +52,16 @@ func main() {
 	if strings.Contains(utils.FormatProtocol(config.Which), "quic") {
 		serverHost = net.JoinHostPort(config.Server, strconv.Itoa(int(config.QuicPort)))
 	}
+
+	which := utils.FormatProtocol(config.Which)
+
+	log.Println("protol ", which)
+
 	if *s {
 		log.Println("I AM A SERVER!!")
 		sconf := &socks5server.SConfig{
 			ServerAddress: serverHost,
-			Network:       utils.FormatProtocol(config.Which),
+			Network:       which,
 			Tm:            config.Timeout,
 			User:          user,
 			Pass:          user,
@@ -75,7 +80,7 @@ func main() {
 			Key:     privacy.MakeCompressKey(config.Password),
 			Proxy:   serverHost,
 			Tm:      config.Timeout,
-			Network: utils.FormatProtocol(config.Which),
+			Network: which,
 		}
 		sconf := &socks5server.SConfig{
 			ServerAddress: net.JoinHostPort(config.Local, strconv.Itoa(int(config.LocalPort))),

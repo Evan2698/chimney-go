@@ -54,7 +54,7 @@ func NewClient(settings *socketcore.ClientConfig) Socks5Client {
 //Dial ..
 func (c *socksHolder) Dial(network, target string) (socketcore.SocksStream, error) {
 	defer utils.Trace("Dial")()
-	log.Println("proxy addr: ", c.Settings.Proxy)
+	log.Println("proxy addr: ", c.Settings.Proxy, network)
 	con, err := buildGeneralSocket(c.Settings.Proxy, network, c.Settings.Tm)
 	if err != nil {
 		log.Println("create connection socket failed: ", err)
