@@ -349,6 +349,7 @@ func (s *serverHolder) responseCommandConnect(conn net.Conn, cmd []byte) (net.Co
 		if isAuth {
 			out, err := s.I.Compress(content, s.Key)
 			if err != nil {
+				target.Close()
 				log.Println("compress connect command failed ", err)
 				return nil, err
 			}
