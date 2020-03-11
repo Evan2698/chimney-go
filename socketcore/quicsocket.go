@@ -54,7 +54,7 @@ func (s *quicSocketHolder) Close() error {
 	}
 	if s.destory {
 		if s.Session != nil {
-			s.Session.CloseWithError(0, "ok")
+			s.Session.Close()
 		}
 	}
 	s.Stream = nil

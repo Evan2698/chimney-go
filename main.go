@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,7 +25,6 @@ func main() {
 	var configpath string
 	cpu := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpu * 4)
-
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		fmt.Print("can not combin config file path!")
