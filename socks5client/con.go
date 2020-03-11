@@ -4,9 +4,12 @@ import (
 	"chimney-go/socketcore"
 	"chimney-go/utils"
 	"context"
+	"crypto/tls"
 	"log"
 	"net"
 	"strings"
+
+	quic "github.com/lucas-clemente/quic-go"
 )
 
 func buildGeneralSocket(host, network string, tm uint32) (con net.Conn, err error) {
@@ -29,19 +32,25 @@ func buildGeneralSocket(host, network string, tm uint32) (con net.Conn, err erro
 func buildQuicSocket(host, network string, tm uint32) (con net.Conn, err error) {
 	log.Println("quic connect:  ", host, network)
 
-	session, err := getQuicInstance(host)
+	tlsConf := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{socketcore.QuicProtocolName},
+	}
+
+	session, err := quic.DialAddr(host, tlsConf, &quic.Config{})
 	if err != nil {
-		log.Println("create instance failed:  ", host, err)
+		log.Println("create quick socket stream failed", err)
 		return nil, err
 	}
+
 	stream, err := session.OpenStreamSync(context.Background())
 	if err != nil {
-		destoryQuicInstance()
+		session.Close()
 		log.Println("create quick socket stream failed", err)
 		return nil, err
 	}
 	log.Print("create socket(quic) socket success!")
-	v := socketcore.NewQuicSocket(session, stream)
+	v := socketcore.NewClientSocket(session, stream)
 	socketcore.SetSocketTimeout(v, tm)
 	return v, nil
 }

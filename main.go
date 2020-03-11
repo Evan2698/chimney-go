@@ -21,7 +21,9 @@ import (
 var s *bool
 
 func main() {
-
+	/*	go func() {
+		http.ListenAndServe("0.0.0.0:8899", nil)
+	}()*/
 	var configpath string
 	cpu := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpu * 4)
