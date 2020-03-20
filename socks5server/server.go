@@ -17,6 +17,7 @@ import (
 const (
 	protocolTCP  = "tcp"
 	protocolQuic = "quic"
+	offset4B     = 256
 )
 const (
 	socks5Version          uint8 = 0x5
@@ -212,7 +213,7 @@ func (s *serverHolder) proxyWrite(dst socketcore.ISocket, src net.Conn, wg *sync
 
 	tempBuffer := socketcore.Alloc()
 	defer socketcore.Free(tempBuffer)
-	readBuffer := tempBuffer[:len(tempBuffer)-512]
+	readBuffer := tempBuffer[:len(tempBuffer)-offset4B]
 
 	for {
 		n, err := src.Read(readBuffer[:])
