@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
 )
 
 var s *bool
@@ -50,20 +49,35 @@ func main() {
 
 	user := privacy.BuildMacHash(privacy.MakeCompressKey(config.Password), "WhereRU")
 
-	serverHost := net.JoinHostPort(config.Server, strconv.Itoa(int(config.ServerPort)))
-	if strings.Contains(utils.FormatProtocol(config.Which), "quic") {
-		serverHost = net.JoinHostPort(config.Server, strconv.Itoa(int(config.QuicPort)))
-	}
+	serverTCP := net.JoinHostPort(config.Server, strconv.Itoa(int(config.ServerPort)))
+	serverQuic := net.JoinHostPort(config.Server, strconv.Itoa(int(config.QuicPort)))
 
 	which := utils.FormatProtocol(config.Which)
 
 	log.Println("protol ", which)
 
 	if *s {
+		// start quic server
 		log.Println("I AM A SERVER!!")
+		go func(){
+			sconf := &socks5server.SConfig{
+				ServerAddress: serverQuic,
+				Network:       "quic",
+				Tm:            config.Timeout,
+				User:          user,
+				Pass:          user,
+				Key:           privacy.MakeCompressKey(config.Password),
+				I:             privacy.NewMethodWithName(config.Method),
+			}
+			ss := socks5server.NewServer(sconf)
+			ss.Serve()
+
+		}():
+
+		// start tcp server 
 		sconf := &socks5server.SConfig{
-			ServerAddress: serverHost,
-			Network:       which,
+			ServerAddress: serverTCP,
+			Network:       "tcp",
 			Tm:            config.Timeout,
 			User:          user,
 			Pass:          user,
