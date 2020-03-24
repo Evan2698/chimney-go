@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"os"
 	"path/filepath"
@@ -51,6 +52,10 @@ func main() {
 
 	serverTCP := net.JoinHostPort(config.Server, strconv.Itoa(int(config.ServerPort)))
 	serverQuic := net.JoinHostPort(config.Server, strconv.Itoa(int(config.QuicPort)))
+	serverHost := serverTCP
+	if strings.Contains(utils.FormatProtocol(config.Which), "quic") {
+		serverHost = serverQuic
+	}
 
 	which := utils.FormatProtocol(config.Which)
 
@@ -59,8 +64,8 @@ func main() {
 	if *s {
 		// start quic server
 		log.Println("I AM A SERVER!!")
-		go func(){
-			sconf := &socks5server.SConfig{
+		go func() {
+			quiconf := &socks5server.SConfig{
 				ServerAddress: serverQuic,
 				Network:       "quic",
 				Tm:            config.Timeout,
@@ -69,12 +74,12 @@ func main() {
 				Key:           privacy.MakeCompressKey(config.Password),
 				I:             privacy.NewMethodWithName(config.Method),
 			}
-			ss := socks5server.NewServer(sconf)
-			ss.Serve()
+			qs := socks5server.NewServer(quiconf)
+			qs.Serve()
 
-		}():
+		}()
 
-		// start tcp server 
+		// start tcp server
 		sconf := &socks5server.SConfig{
 			ServerAddress: serverTCP,
 			Network:       "tcp",
