@@ -1,20 +1,40 @@
 package privacy
 
 import (
-	"encoding/hex"
 	"strings"
 	"testing"
 )
 
+func tospace(s string) string {
+
+	return strings.ToUpper(s)
+}
+
 func TestGCM(t *testing.T) {
+
+	/*u := binary.LittleEndian.Uint32([]byte{1, 0, 0, 0})
+	t.Log(u)
 
 	hello := NewMethodWithName("AES-GCM")
 	hello.SetIV([]byte("123456789012"))
-	fuck, err := hello.Compress([]byte("Im a secret message!"), []byte("12345678901234567890123456789012"))
 
-	t.Log(strings.ToUpper(hex.EncodeToString(fuck)), err, len(fuck), strings.ToUpper(hex.EncodeToString(hello.ToBytes())))
-	one, err := hello.Uncompress(fuck, []byte("12345678901234567890123456789012"))
-	t.Log(string(one), err)
+	key := []byte("12345678901234567890123456789012")
+	t.Log("key = ", tospace(hex.EncodeToString(key)))
+	ori := []byte("Im a secret message!")
+	t.Log("ori = ", tospace(hex.EncodeToString(ori)))
+	fuck, _ := hello.Compress(ori, key)
+	t.Log("fuck = ", tospace(hex.EncodeToString(fuck)))
+
+	one, _ := hello.Uncompress(fuck, key)
+
+	t.Log("one = ", tospace(hex.EncodeToString(one)))*/
+
+	//key := []byte("12345678901234567890123456789012")
+	//ori := []byte("Im a secret message!")
+	//kk := MakeCompressKey(string(ori))
+	hello := NewMethodWithName("CHACHA-Ploy1305")
+	hello.SetIV([]byte("123456789012123456789012"))
+	t.Log(hello.ToBytes())
 
 }
 

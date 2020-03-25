@@ -76,7 +76,7 @@ func (p *ploy) GetSize() int {
 
 func (p *ploy) ToBytes() []byte {
 	var op bytes.Buffer
-	mask := utils.Uint162Bytes(chacha20Code)
+	mask := utils.Uint162Bytes(ployCode)
 	op.Write(mask)
 	lv := (byte)(len(p.iv))
 	op.WriteByte(lv)

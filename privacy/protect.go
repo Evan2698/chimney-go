@@ -3,13 +3,10 @@ package privacy
 import (
 	"chimney-go/utils"
 	"crypto/hmac"
-	"crypto/sha1"
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"log"
 	"reflect"
-	"strings"
 )
 
 //EncryptThings for everything protecting
@@ -91,10 +88,11 @@ func newMethodWithCode(code uint16) EncryptThings {
 
 //MakeCompressKey ..
 func MakeCompressKey(srcKey string) []byte {
-	r := sha1.Sum([]byte(srcKey))
-	out := hex.EncodeToString(r[:])
-	out = strings.ToUpper(out)
-	return ([]byte(out[:]))[:32]
+	key := []byte("E234V678A012N456I890O234V678U012")
+	tmp := BuildMacHash(key, srcKey)
+	out := [32]byte{0}
+	copy(out[:], tmp)
+	return out[:32]
 }
 
 //BuildMacHash ..
