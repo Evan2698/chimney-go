@@ -36,7 +36,7 @@ func NewISocket(con net.Conn, i privacy.EncryptThings, key []byte) ISocket {
 	}
 }
 
-func readbytesfromraw(bytes uint32, buffer []byte, con net.Conn) ([]byte, error) {
+func readXBytes(bytes uint32, buffer []byte, con net.Conn) ([]byte, error) {
 
 	if bytes <= 0 {
 		return nil, errors.New("0 bytes can not read! ")
@@ -48,21 +48,19 @@ func readbytesfromraw(bytes uint32, buffer []byte, con net.Conn) ([]byte, error)
 	for {
 		n, err = con.Read(buffer[index:])
 		log.Println("read from socket size: ", n, err)
-		index = index + uint32(n)
 		if err != nil {
 			log.Println("error on read_bytes_from_socket ", n, err)
 			break
 		}
+		index = index + uint32(n)
 
-		if index >= bytes && index > 0 {
+		if index >= bytes {
 			log.Println("read count for output ", index, err)
 			break
 		}
-
 	}
-
-	if index < bytes && index != 0 {
-		log.Println("can not run here!!!!!")
+	if index == bytes {
+		err = nil
 	}
 
 	log.Println("read result size: ", index, err)
@@ -80,7 +78,7 @@ func (s *iSocketHolder) Close() {
 func (s *iSocketHolder) Read() ([]byte, error) {
 	defer utils.Trace("iSocketHolder.Read")()
 
-	buffer, err := readbytesfromraw(4, s.inBuffer[:4], s.EChannel)
+	buffer, err := readXBytes(4, s.inBuffer[:4], s.EChannel)
 	if err != nil {
 		log.Println("read raw content failed", err)
 		return nil, err
@@ -94,7 +92,7 @@ func (s *iSocketHolder) Read() ([]byte, error) {
 		return nil, errors.New("Length is too long")
 	}
 
-	buffer, err = readbytesfromraw(vLen, s.inBuffer[:vLen], s.EChannel)
+	buffer, err = readXBytes(vLen, s.inBuffer[:vLen], s.EChannel)
 	if err != nil {
 		log.Println("read content failed: ", err)
 		return nil, err
