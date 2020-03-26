@@ -295,7 +295,7 @@ func (s *serverHolder) responseCommandConnect(conn net.Conn, cmd []byte) (net.Co
 			aocks.IPvX = net.IP(content[:len(content)-2])
 			aocks.AddressType = cmd[3]
 		} else if cmd[3] == socks5AddressDomain {
-			aocks.Domain = string(content[1 : len(content)-2])
+			aocks.Domain = string(content[:len(content)-2])
 			aocks.AddressType = cmd[3]
 		} else {
 			log.Println("responseCommandConnect", cmd)
