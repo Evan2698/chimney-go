@@ -108,6 +108,30 @@ func (s *iSocketHolder) Read() ([]byte, error) {
 
 }
 
+func writeXBytes(buffer []byte, con net.Conn) (int, error) {
+
+	nbytes := uint32(len(buffer))
+	var index uint32 = 0
+	var err error
+	var n int
+	for {
+		n, err = con.Write(buffer[index:])
+		if err != nil {
+			log.Println("write bytes error! ", n, err)
+			break
+		}
+		index = index + uint32(n)
+		if index >= nbytes {
+			break
+		}
+	}
+	if index == nbytes {
+		err = nil
+	}
+
+	return int(index), err
+}
+
 func (s *iSocketHolder) Write(b []byte) error {
 	defer utils.Trace("iSocketHolder.Write")()
 
@@ -124,12 +148,12 @@ func (s *iSocketHolder) Write(b []byte) error {
 	}
 
 	vLenBuffer := utils.Int2Bytes(uint32(oLen))
-	_, err = s.EChannel.Write(vLenBuffer)
+	_, err = writeXBytes(vLenBuffer, s.EChannel)
 	if err != nil {
 		log.Println("write length of content failed: ", err)
 		return err
 	}
-	_, err = s.EChannel.Write(out)
+	_, err = writeXBytes(out, s.EChannel)
 	if err != nil {
 		log.Println("write content failed: ", err)
 		return err
