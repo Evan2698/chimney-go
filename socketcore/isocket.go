@@ -37,7 +37,7 @@ func NewISocket(con net.Conn, i privacy.EncryptThings, key []byte) ISocket {
 }
 
 func readXBytes(bytes uint32, buffer []byte, con net.Conn) ([]byte, error) {
-
+	defer utils.Trace("readXBytes.readXBytes")()
 	if bytes <= 0 {
 		return nil, errors.New("0 bytes can not read! ")
 	}
@@ -109,7 +109,7 @@ func (s *iSocketHolder) Read() ([]byte, error) {
 }
 
 func writeXBytes(buffer []byte, con net.Conn) (int, error) {
-
+	defer utils.Trace("writeXBytes.writeXBytes")()
 	nbytes := uint32(len(buffer))
 	var index uint32 = 0
 	var err error
@@ -128,6 +128,8 @@ func writeXBytes(buffer []byte, con net.Conn) (int, error) {
 	if index == nbytes {
 		err = nil
 	}
+
+	log.Println("writeXBytes >>>>>>", n, err)
 
 	return int(index), err
 }
