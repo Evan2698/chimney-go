@@ -119,6 +119,12 @@ func (s *serverHolder) Serve() error {
 
 func (s *serverHolder) serveOn(conn net.Conn) error {
 	defer utils.Trace("serveOn")()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(" fatal error on serveOn: ", err)
+		}
+	}()
+
 	socketcore.SetSocketTimeout(conn, s.Tm)
 
 	err := s.echoHello(conn)
@@ -172,6 +178,12 @@ func (s *serverHolder) serveOn(conn net.Conn) error {
 
 func (s *serverHolder) proxy(dst, src net.Conn, wg *sync.WaitGroup) {
 	defer utils.Trace("proxy")()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(" fatal error on proxy: ", err)
+		}
+	}()
+
 	tempBuffer := socketcore.Alloc()
 	defer socketcore.Free(tempBuffer)
 	for {
@@ -192,6 +204,11 @@ func (s *serverHolder) proxy(dst, src net.Conn, wg *sync.WaitGroup) {
 
 func (s *serverHolder) proxyRead(dst net.Conn, src socketcore.ISocket, wg *sync.WaitGroup) {
 	defer utils.Trace("proxyRead")()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(" fatal error on proxyRead: ", err)
+		}
+	}()
 	for {
 		out, err := src.Read()
 		if err != nil {
@@ -210,6 +227,11 @@ func (s *serverHolder) proxyRead(dst net.Conn, src socketcore.ISocket, wg *sync.
 
 func (s *serverHolder) proxyWrite(dst socketcore.ISocket, src net.Conn, wg *sync.WaitGroup) {
 	defer utils.Trace("proxyWrite")()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(" fatal error on proxyWrite: ", err)
+		}
+	}()
 
 	tempBuffer := socketcore.Alloc()
 	defer socketcore.Free(tempBuffer)

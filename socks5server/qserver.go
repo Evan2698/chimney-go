@@ -61,6 +61,11 @@ func (s *serverHolder) serveQuicSession(session quic.Session) {
 	defer func() {
 		session.Close()
 	}()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(" fatal error on serveQuicSession: ", err)
+		}
+	}()
 
 	for {
 		stream, err := session.AcceptStream(context.Background())
