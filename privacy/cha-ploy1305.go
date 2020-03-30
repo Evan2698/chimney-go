@@ -16,7 +16,7 @@ type ploy struct {
 }
 
 const (
-	ployName = "CHACHA-Ploy1305"
+	ployName = "CHACHA-POLY1305"
 	ployCode = 0x1236
 )
 

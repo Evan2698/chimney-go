@@ -12,6 +12,7 @@ type AppConfig struct {
 	ServerPort uint16 `json:"server_port"`
 	Server     string `json:"server"`
 	QuicPort   uint16 `json:"quic_port"`
+	UDPPort    uint16 `json:"udp_port"`
 	LocalPort  uint16 `json:"local_port"`
 	Local      string `json:"local"`
 	Which      string `json:"which"`
@@ -46,6 +47,7 @@ func DumpConfig(config *AppConfig) {
 	log.Println("server :", config.Server)
 	log.Println("server_port :", config.ServerPort)
 	log.Println("QuicPort :", config.QuicPort)
+	log.Println("udpport :", config.UDPPort)
 	log.Println("local_port :", config.LocalPort)
 	log.Println("local :", config.Local)
 	log.Println("which :", config.Which)
