@@ -13,6 +13,7 @@ type AppConfig struct {
 	Server     string `json:"server"`
 	QuicPort   uint16 `json:"quic_port"`
 	UDPPort    uint16 `json:"udp_port"`
+	LocalUDP   uint16 `json:"local_udp_port"`
 	LocalPort  uint16 `json:"local_port"`
 	Local      string `json:"local"`
 	Which      string `json:"which"`

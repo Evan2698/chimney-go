@@ -3,6 +3,7 @@
     "server_port": 9025,
     "quic_port": 9025,
     "udp_port": 9024,
+    "local_udp_port": 9022,
     "local": "127.0.0.1",
     "local_port": 9023,
     "which": "tcp",
