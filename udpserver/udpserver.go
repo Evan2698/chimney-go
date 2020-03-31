@@ -17,7 +17,7 @@ import (
 //---------------------------------------------------------------------------------------
 // | 1 cmd| 2(len) | 1 type|  ip(domain) target | 2(len) 1 type| ip(domain) src| (3072)data|
 //
-//
+// b'\x1\x0\x7\x1\x7f\x0\x0\x1\x23\x45\x0\x7\x1\x7f\x0\x0\x1\x23\x45\x32\x33\x34'
 //-----------------------------------------------------------------------------------------
 
 // response
@@ -36,14 +36,16 @@ type UDPServer interface {
 }
 
 // NewUDPServer ...
-func NewUDPServer(listenAddress string, i privacy.EncryptThings) UDPServer {
+func NewUDPServer(listenAddress string, i privacy.EncryptThings, k []byte) UDPServer {
 	return &udpproxy{
 		listen: listenAddress,
 		I:      i,
+		key: k,
 	}
 }
 
 func (s *udpproxy) Run() {
+	log.Println("UDP server listen on: ", s.listen)
 
 	udpaddr, err := net.ResolveUDPAddr("udp", s.listen)
 	if err != nil {
@@ -102,6 +104,11 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		log.Println("uncompressed failed", err)
 		return
 	}
+
+	log.Println("DATA:", out);
+
+
+
 	sendata, err := ParseData(out)
 	if err != nil {
 		log.Println("uncompressed failed", err)
@@ -140,6 +147,8 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		return
 	}
 
+	log.Println("RECV: ", readBuffer[:n])
+
 	answser := &UDPCom{
 		src:  sendata.dst,
 		dst:  sendata.src,
@@ -148,6 +157,7 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 	}
 
 	ll := ToAnswer(answser)
+	log.Println("Answer: ", ll)
 
 	out, err = s.I.Compress(ll, s.key)
 	if err != nil {

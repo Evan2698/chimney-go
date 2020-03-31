@@ -25,37 +25,35 @@ func ParseData(in []byte) (*UDPCom, error) {
 	v.cmd = tmp[0]
 	tmp = op.Next(2)
 	ll := utils.Bytes2Uint16(tmp)
-	tmp = op.Next(1)
+	tmp = op.Next(int(ll))
 	t := tmp[0]
-	ip1 := op.Next(int(ll))
-	port := utils.Bytes2Uint16(ip1[len(ip1)-2:])
-	tmp = ip1[:len(ip1)-2]
+	ip1 := tmp[1 : len(tmp)-2]
+	port := utils.Bytes2Uint16(tmp[len(tmp)-2:])
 	vv := &socketcore.Socks5Addr{
 		AddressType: t,
 		Port:        port,
 	}
 	if t == 1 || t == 4 {
-		vv.IPvX = tmp
+		vv.IPvX = ip1
 	} else if t == 3 {
-		vv.Domain = string(tmp)
+		vv.Domain = string(ip1)
 	}
 	v.dst = vv
 	tmp = op.Next(2)
 	ll = utils.Bytes2Uint16(tmp)
-	tmp = op.Next(1)
+	tmp = op.Next(int(ll))
 	t = tmp[0]
-	ip1 = op.Next(int(ll))
-	port = utils.Bytes2Uint16(ip1[len(ip1)-2:])
-	tmp = ip1[:len(ip1)-2]
+	ip1 = tmp[1 : len(tmp)-2]
+	port = utils.Bytes2Uint16(tmp[len(tmp)-2:])
 
 	vv = &socketcore.Socks5Addr{
 		AddressType: t,
 		Port:        port,
 	}
 	if t == 1 || t == 4 {
-		vv.IPvX = tmp
+		vv.IPvX = ip1
 	} else if t == 3 {
-		vv.Domain = string(tmp)
+		vv.Domain = string(ip1)
 	}
 	v.src = vv
 
@@ -72,11 +70,11 @@ func ToAnswer(n *UDPCom) []byte {
 
 	buffer.WriteByte(n.cmd)
 	l := n.dst.GetAddressRawBytes()
-	buffer.Write(utils.Uint162Bytes(uint16(len(l))))
+	buffer.Write(utils.Uint162Bytes(uint16(len(l) + 1)))
 	buffer.WriteByte(n.dst.GetAddressType())
 	buffer.Write(l)
 	l = n.src.GetAddressRawBytes()
-	buffer.Write(utils.Uint162Bytes(uint16(len(l))))
+	buffer.Write(utils.Uint162Bytes(uint16(len(l) + 1)))
 	buffer.WriteByte(n.src.GetAddressType())
 	buffer.Write(l)
 	buffer.Write(n.data)

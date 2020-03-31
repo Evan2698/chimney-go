@@ -6,6 +6,7 @@ import (
 	"chimney-go/socketcore"
 	"chimney-go/socks5server"
 	"chimney-go/utils"
+	"chimney-go/udpserver"
 	"flag"
 	"fmt"
 	"log"
@@ -78,6 +79,12 @@ func main() {
 			qs.Serve()
 
 		}()
+
+		// start UDP server
+		udp := udpserver.NewUDPServer(net.JoinHostPort(config.Server, strconv.Itoa(int(config.UDPPort))),
+		privacy.NewMethodWithName(config.Method),
+		    privacy.MakeCompressKey(config.Password))
+		udp.Run()
 
 		// start tcp server
 		sconf := &socks5server.SConfig{
