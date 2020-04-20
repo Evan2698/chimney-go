@@ -130,8 +130,6 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		socket.Close()
 	}()
 
-	log.Println("sendata.data...........", sendata.data)
-
 	_, err = socket.Write(sendata.data)
 	if err != nil {
 		log.Println("dial udp failed  ", sendata.dst)

@@ -83,8 +83,6 @@ func (s *udpClient) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPC
 	willdata.Write(k)
 	willdata.Write(out)
 
-	log.Println("value", willdata.Bytes())
-
 	socket, err := net.Dial("udp", s.What)
 	if err != nil {
 		log.Println("dial udp failed  ", s.What)
@@ -114,7 +112,6 @@ func (s *udpClient) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPC
 		return
 	}
 
-	log.Println("RECV: ", readBuffer[:n])
 	data := readBuffer[:n]
 
 	dataL := utils.Bytes2Int(data[:4])
