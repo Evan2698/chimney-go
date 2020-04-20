@@ -1,6 +1,7 @@
 package udpserver
 
 import (
+	"bytes"
 	"chimney-go/privacy"
 	"chimney-go/utils"
 	"log"
@@ -73,9 +74,16 @@ func (s *udpClient) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPC
 	}
 
 	k := s.I.ToBytes()
-	k = append(k, out...)
-	lens := utils.Int2Bytes(uint32(len(k)))
-	out = append(lens, k...)
+	total := len(k) + len(out) + 1
+	start := utils.Int2Bytes(uint32(total))
+
+	var willdata bytes.Buffer
+	willdata.Write(start)
+	willdata.WriteByte(byte(len(k)))
+	willdata.Write(k)
+	willdata.Write(out)
+
+	log.Println("value", willdata.Bytes())
 
 	socket, err := net.Dial("udp", s.What)
 	if err != nil {
@@ -87,13 +95,13 @@ func (s *udpClient) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPC
 		socket.Close()
 	}()
 
-	_, err = socket.Write(out)
+	_, err = socket.Write(willdata.Bytes())
 	if err != nil {
 		log.Println("dial udp failed  ", s.What)
 		return
 	}
 
-	log.Println("will recv ....................")
+	log.Println("send to proxy remote")
 
 	readBuffer := WantAPiece()
 	defer func() {

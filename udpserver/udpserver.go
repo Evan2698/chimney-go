@@ -82,6 +82,12 @@ func (s *udpproxy) Run() {
 
 func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPConn) {
 	defer func() {
+		if err := recover(); err != nil {
+			log.Println(" fatal error on serveOn: ", err)
+		}
+	}()
+
+	defer func() {
 		ReturnAPice(buf)
 	}()
 
@@ -105,8 +111,6 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		return
 	}
 
-	log.Println("DATA:", out)
-
 	sendata, err := ParseData(out)
 	if err != nil {
 		log.Println("uncompressed failed", err)
@@ -114,6 +118,7 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 	}
 
 	log.Println("target udp address: ", sendata.dst.String())
+	log.Println("sendata", sendata.data)
 
 	socket, err := net.Dial("udp", sendata.dst.String())
 	if err != nil {
