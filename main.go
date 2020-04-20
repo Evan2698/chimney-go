@@ -5,8 +5,8 @@ import (
 	"chimney-go/privacy"
 	"chimney-go/socketcore"
 	"chimney-go/socks5server"
-	"chimney-go/utils"
 	"chimney-go/udpserver"
+	"chimney-go/utils"
 	"flag"
 	"fmt"
 	"log"
@@ -82,8 +82,8 @@ func main() {
 
 		// start UDP server
 		udp := udpserver.NewUDPServer(net.JoinHostPort(config.Server, strconv.Itoa(int(config.UDPPort))),
-		privacy.NewMethodWithName(config.Method),
-		    privacy.MakeCompressKey(config.Password))
+			privacy.NewMethodWithName(config.Method),
+			privacy.MakeCompressKey(config.Password))
 		udp.Run()
 
 		// start tcp server
@@ -116,6 +116,14 @@ func main() {
 			CC:            settings,
 			Tm:            config.Timeout,
 		}
+		go func() {
+			localListen := net.JoinHostPort(config.Local, strconv.Itoa(int(config.LocalUDP)))
+			remote := net.JoinHostPort(config.Server, strconv.Itoa(int(config.UDPPort)))
+			udp := udpserver.NewUDPClientServer(localListen, remote,
+				privacy.NewMethodWithName(config.Method),
+				privacy.MakeCompressKey(config.Password))
+			udp.Run()
+		}()
 		ss := socks5server.NewServer(sconf)
 		ss.Serve()
 

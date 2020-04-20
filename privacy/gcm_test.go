@@ -1,6 +1,7 @@
 package privacy
 
 import (
+	"encoding/hex"
 	"strings"
 	"testing"
 )
@@ -19,6 +20,5 @@ func TestGCM(t *testing.T) {
 	cha20 := NewMethodWithName("CHACHA-20")
 	cha20.SetIV(iv)
 	out, err := cha20.Compress(src, key)
-	t.Log(out, err)
-
+	t.Log(strings.ToUpper(hex.EncodeToString(out)), err)
 }

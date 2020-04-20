@@ -40,7 +40,7 @@ func NewUDPServer(listenAddress string, i privacy.EncryptThings, k []byte) UDPSe
 	return &udpproxy{
 		listen: listenAddress,
 		I:      i,
-		key: k,
+		key:    k,
 	}
 }
 
@@ -105,15 +105,15 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		return
 	}
 
-	log.Println("DATA:", out);
-
-
+	log.Println("DATA:", out)
 
 	sendata, err := ParseData(out)
 	if err != nil {
 		log.Println("uncompressed failed", err)
 		return
 	}
+
+	log.Println("target udp address: ", sendata.dst.String())
 
 	socket, err := net.Dial("udp", sendata.dst.String())
 	if err != nil {
@@ -125,6 +125,8 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		socket.Close()
 	}()
 
+	log.Println("sendata.data...........", sendata.data)
+
 	_, err = socket.Write(sendata.data)
 	if err != nil {
 		log.Println("dial udp failed  ", sendata.dst)
@@ -135,6 +137,8 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		log.Println("need not response ", sendata.dst)
 		return
 	}
+
+	log.Println("will recv ....................")
 
 	readBuffer := WantAPiece()
 	defer func() {
