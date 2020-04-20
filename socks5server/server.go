@@ -90,7 +90,7 @@ func NewServer(settings *SConfig) Server {
 //Serve ..
 func (s *serverHolder) Serve() error {
 
-	log.Println("which network: ", s.Network, s.CC)
+	log.Println("which network: ", s.Network)
 
 	if s.CC == nil && strings.Contains(s.Network, socketcore.QUIC) {
 		log.Println("server run on " + s.ServerAddress + " with quic protocol.")
