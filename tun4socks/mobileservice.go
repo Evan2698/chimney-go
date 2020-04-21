@@ -17,10 +17,27 @@ import (
 	"time"
 )
 
-// StartVPN ....
-func StartVPN(fd int, fun mobile.ProtectSocket, pw string, remoteHost string, port, UDPport int) int {
-	startChimney(pw, remoteHost, port, UDPport, fun)
-	startLwIP(fd)
+// BindSocket How do you think about ?
+type BindSocket interface {
+	mobile.ProtectSocket
+}
+
+// VPNParam for start vpn service
+type VPNParam struct {
+	FileDescriptor int
+	RemoteServer   string
+	Port           int
+	UDPPort        int
+	PassWD         string
+	CallBack       BindSocket
+}
+
+// StartVPN for tun-->socks5
+func StartVPN(param *VPNParam) int {
+	go func() {
+		startChimney(param.PassWD, param.RemoteServer, param.Port, param.UDPPort, param.CallBack)
+	}()
+	startLwIP(param.FileDescriptor)
 	return 0
 }
 
