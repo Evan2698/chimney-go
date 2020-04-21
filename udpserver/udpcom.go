@@ -8,10 +8,10 @@ import (
 
 // UDPCom ...
 type UDPCom struct {
-	src  socketcore.Socks5Address
-	dst  socketcore.Socks5Address
-	cmd  uint8
-	data []byte
+	Src  socketcore.Socks5Address
+	Dst  socketcore.Socks5Address
+	Cmd  uint8
+	Data []byte
 }
 
 //| 1 cmd| 2(len) | 1 type|  ip(domain) target | 2(len) 1 type| ip(domain) src| (3072)data|
@@ -22,7 +22,7 @@ func ParseData(in []byte) (*UDPCom, error) {
 
 	op := bytes.NewBuffer(in)
 	tmp := op.Next(1)
-	v.cmd = tmp[0]
+	v.Cmd = tmp[0]
 	tmp = op.Next(2)
 	ll := utils.Bytes2Uint16(tmp)
 	tmp = op.Next(int(ll))
@@ -38,7 +38,7 @@ func ParseData(in []byte) (*UDPCom, error) {
 	} else if t == 3 {
 		vv.Domain = string(ip1)
 	}
-	v.dst = vv
+	v.Dst = vv
 	tmp = op.Next(2)
 	ll = utils.Bytes2Uint16(tmp)
 	tmp = op.Next(int(ll))
@@ -55,9 +55,9 @@ func ParseData(in []byte) (*UDPCom, error) {
 	} else if t == 3 {
 		vv.Domain = string(ip1)
 	}
-	v.src = vv
+	v.Src = vv
 
-	v.data = op.Next(op.Len())
+	v.Data = op.Next(op.Len())
 
 	return v, nil
 }
@@ -68,16 +68,16 @@ func ParseData(in []byte) (*UDPCom, error) {
 func ToAnswer(n *UDPCom) []byte {
 	var buffer bytes.Buffer
 
-	buffer.WriteByte(n.cmd)
-	l := n.dst.GetAddressRawBytes()
+	buffer.WriteByte(n.Cmd)
+	l := n.Dst.GetAddressRawBytes()
 	buffer.Write(utils.Uint162Bytes(uint16(len(l) + 1)))
-	buffer.WriteByte(n.dst.GetAddressType())
+	buffer.WriteByte(n.Dst.GetAddressType())
 	buffer.Write(l)
-	l = n.src.GetAddressRawBytes()
+	l = n.Src.GetAddressRawBytes()
 	buffer.Write(utils.Uint162Bytes(uint16(len(l) + 1)))
-	buffer.WriteByte(n.src.GetAddressType())
+	buffer.WriteByte(n.Src.GetAddressType())
 	buffer.Write(l)
-	buffer.Write(n.data)
+	buffer.Write(n.Data)
 
 	return buffer.Bytes()
 }

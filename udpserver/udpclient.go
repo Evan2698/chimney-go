@@ -23,10 +23,15 @@ func NewUDPClientServer(listenAddress string, remote string, i privacy.EncryptTh
 			listen: listenAddress,
 			I:      i,
 			key:    k,
+			Flag:   false,
 		},
 		What:       remote,
 		protectFun: pfun,
 	}
+}
+
+func (s *udpClient) Stop() {
+	s.Flag = true
 }
 
 func (s *udpClient) Run() {
@@ -44,6 +49,9 @@ func (s *udpClient) Run() {
 		log.Println(" can not listen on ", s.listen, " to recv client request.")
 		return
 	}
+
+	defer socket.Close()
+
 	go func(udp *net.UDPConn) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -58,6 +66,10 @@ func (s *udpClient) Run() {
 			if err != nil {
 				log.Println(" read info failed ", err)
 				continue
+			}
+			if s.Flag {
+				log.Println(" read info failed ", err)
+				break
 			}
 
 			go s.serveOne(data, rAddr, n, udp)

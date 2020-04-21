@@ -28,11 +28,13 @@ type udpproxy struct {
 	listen string
 	I      privacy.EncryptThings
 	key    []byte
+	Flag   bool
 }
 
 // UDPServer ..
 type UDPServer interface {
 	Run()
+	Stop()
 }
 
 // NewUDPServer ...
@@ -41,7 +43,11 @@ func NewUDPServer(listenAddress string, i privacy.EncryptThings, k []byte) UDPSe
 		listen: listenAddress,
 		I:      i,
 		key:    k,
+		Flag:   false,
 	}
+}
+func (s *udpproxy) Stop() {
+	s.Flag = true
 }
 
 func (s *udpproxy) Run() {
@@ -58,6 +64,9 @@ func (s *udpproxy) Run() {
 		log.Println(" can not listen on ", s.listen, " to recv client request.")
 		return
 	}
+
+	defer socket.Close()
+
 	go func(udp *net.UDPConn) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -73,7 +82,10 @@ func (s *udpproxy) Run() {
 				log.Println(" read info failed ", err)
 				continue
 			}
-
+			if s.Flag {
+				log.Println("EXIT UDP", err)
+				break
+			}
 			go s.serveOne(data, rAddr, n, udp)
 		}
 
@@ -117,12 +129,12 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		return
 	}
 
-	log.Println("target udp address: ", sendata.dst.String())
-	log.Println("sendata", sendata.data)
+	log.Println("target udp address: ", sendata.Dst.String())
+	log.Println("sendata", sendata.Data)
 
-	socket, err := net.Dial("udp", sendata.dst.String())
+	socket, err := net.Dial("udp", sendata.Dst.String())
 	if err != nil {
-		log.Println("dial udp failed  ", sendata.dst)
+		log.Println("dial udp failed  ", sendata.Dst)
 		return
 	}
 
@@ -130,14 +142,14 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 		socket.Close()
 	}()
 
-	_, err = socket.Write(sendata.data)
+	_, err = socket.Write(sendata.Data)
 	if err != nil {
-		log.Println("dial udp failed  ", sendata.dst)
+		log.Println("dial udp failed  ", sendata.Dst)
 		return
 	}
 
-	if sendata.cmd == 0 {
-		log.Println("need not response ", sendata.dst)
+	if sendata.Cmd == 0 {
+		log.Println("need not response ", sendata.Dst)
 		return
 	}
 
@@ -157,10 +169,10 @@ func (s *udpproxy) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPCo
 	log.Println("RECV: ", readBuffer[:n])
 
 	answser := &UDPCom{
-		src:  sendata.dst,
-		dst:  sendata.src,
-		cmd:  1,
-		data: readBuffer[:n],
+		Src:  sendata.Dst,
+		Dst:  sendata.Src,
+		Cmd:  1,
+		Data: readBuffer[:n],
 	}
 
 	ll := ToAnswer(answser)

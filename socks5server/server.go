@@ -46,6 +46,7 @@ const (
 // Server ...
 type Server interface {
 	Serve() error
+	Stop()
 }
 
 // SConfig ...
@@ -72,6 +73,7 @@ type serverHolder struct {
 	CC            *socketcore.ClientConfig
 	Tm            uint32
 	ProtectFun    mobile.ProtectSocket
+	Flag          bool
 }
 
 //NewServer ...
@@ -87,7 +89,12 @@ func NewServer(settings *SConfig, f mobile.ProtectSocket) Server {
 		CC:            settings.CC,
 		Tm:            settings.Tm,
 		ProtectFun:    f,
+		Flag:          false,
 	}
+}
+
+func (s *serverHolder) Stop() {
+	s.Flag = true
 }
 
 //Serve ..
@@ -108,12 +115,22 @@ func (s *serverHolder) Serve() error {
 		log.Println("listen failed ", err)
 		return err
 	}
+
+	go func(c net.Listener) {
+		c.Close()
+	}(l)
+
 	for {
 		con, err := l.Accept()
 		if err != nil {
 			log.Println(" accept failed ", err)
 			break
 		}
+		if s.Flag {
+			log.Println("EXIT TCP")
+			break
+		}
+
 		go s.serveOn(con)
 	}
 
