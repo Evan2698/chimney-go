@@ -49,9 +49,6 @@ func (s *udpClient) Run() {
 		log.Println(" can not listen on ", s.listen, " to recv client request.")
 		return
 	}
-
-	defer socket.Close()
-
 	go func(udp *net.UDPConn) {
 		defer func() {
 			if err := recover(); err != nil {

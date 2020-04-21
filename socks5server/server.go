@@ -116,9 +116,7 @@ func (s *serverHolder) Serve() error {
 		return err
 	}
 
-	go func(c net.Listener) {
-		c.Close()
-	}(l)
+	defer l.Close()
 
 	for {
 		con, err := l.Accept()
