@@ -116,14 +116,14 @@ func main() {
 			CC:            settings,
 			Tm:            config.Timeout,
 		}
-		go func() {
+		/*go func() {
 			localListen := net.JoinHostPort(config.Local, strconv.Itoa(int(config.LocalUDP)))
 			remote := net.JoinHostPort(config.Server, strconv.Itoa(int(config.UDPPort)))
 			udp := udpserver.NewUDPClientServer(localListen, remote,
 				privacy.NewMethodWithName(config.Method),
 				privacy.MakeCompressKey(config.Password), nil)
 			udp.Run()
-		}()
+		}()*/
 		ss := socks5server.NewServer(sconf, nil)
 		ss.Serve()
 
