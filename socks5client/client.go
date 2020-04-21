@@ -3,6 +3,7 @@ package socks5client
 import (
 	"bytes"
 
+	"chimney-go/mobile"
 	"chimney-go/privacy"
 	"chimney-go/socketcore"
 	"chimney-go/utils"
@@ -38,16 +39,18 @@ type Socks5Client interface {
 
 // socksHolder ..
 type socksHolder struct {
-	Settings  *socketcore.ClientConfig
-	tmpBuffer []byte
-	I         privacy.EncryptThings
+	Settings   *socketcore.ClientConfig
+	tmpBuffer  []byte
+	I          privacy.EncryptThings
+	FunProtect mobile.ProtectSocket
 }
 
 //NewClient ..
-func NewClient(settings *socketcore.ClientConfig) Socks5Client {
+func NewClient(settings *socketcore.ClientConfig, f mobile.ProtectSocket) Socks5Client {
 	return &socksHolder{
-		Settings:  settings,
-		tmpBuffer: socketcore.AskBuffer(),
+		Settings:   settings,
+		tmpBuffer:  socketcore.AskBuffer(),
+		FunProtect: f,
 	}
 }
 
@@ -55,7 +58,7 @@ func NewClient(settings *socketcore.ClientConfig) Socks5Client {
 func (c *socksHolder) Dial(network, target string) (socketcore.SocksStream, error) {
 	defer utils.Trace("Dial")()
 	log.Println("proxy addr: ", c.Settings.Proxy, network)
-	con, err := buildGeneralSocket(c.Settings.Proxy, network, c.Settings.Tm)
+	con, err := buildGeneralSocket(c.Settings.Proxy, network, c.Settings.Tm, c.FunProtect)
 	if err != nil {
 		log.Println("create connection socket failed: ", err)
 		return nil, err

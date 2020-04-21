@@ -2,7 +2,9 @@ package udpserver
 
 import (
 	"bytes"
+	"chimney-go/mobile"
 	"chimney-go/privacy"
+	"chimney-go/socketcore"
 	"chimney-go/utils"
 	"log"
 	"net"
@@ -10,18 +12,20 @@ import (
 
 type udpClient struct {
 	udpproxy
-	What string
+	What       string
+	protectFun mobile.ProtectSocket
 }
 
 // NewUDPClientServer ...
-func NewUDPClientServer(listenAddress string, remote string, i privacy.EncryptThings, k []byte) UDPServer {
+func NewUDPClientServer(listenAddress string, remote string, i privacy.EncryptThings, k []byte, pfun mobile.ProtectSocket) UDPServer {
 	return &udpClient{
 		udpproxy: udpproxy{
 			listen: listenAddress,
 			I:      i,
 			key:    k,
 		},
-		What: remote,
+		What:       remote,
+		protectFun: pfun,
 	}
 }
 
@@ -83,7 +87,12 @@ func (s *udpClient) serveOne(buf []byte, addr *net.UDPAddr, n int, udp *net.UDPC
 	willdata.Write(k)
 	willdata.Write(out)
 
-	socket, err := net.Dial("udp", s.What)
+	var socket net.Conn
+	if s.protectFun != nil {
+		socket, err = socketcore.UDPDail(s.What, s.protectFun)
+	} else {
+		socket, err = net.Dial("udp", s.What)
+	}
 	if err != nil {
 		log.Println("dial udp failed  ", s.What)
 		return

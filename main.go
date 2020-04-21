@@ -75,7 +75,7 @@ func main() {
 				Key:           privacy.MakeCompressKey(config.Password),
 				I:             privacy.NewMethodWithName(config.Method),
 			}
-			qs := socks5server.NewServer(quiconf)
+			qs := socks5server.NewServer(quiconf, nil)
 			qs.Serve()
 
 		}()
@@ -96,7 +96,7 @@ func main() {
 			Key:           privacy.MakeCompressKey(config.Password),
 			I:             privacy.NewMethodWithName(config.Method),
 		}
-		ss := socks5server.NewServer(sconf)
+		ss := socks5server.NewServer(sconf, nil)
 		ss.Serve()
 
 	} else {
@@ -121,10 +121,10 @@ func main() {
 			remote := net.JoinHostPort(config.Server, strconv.Itoa(int(config.UDPPort)))
 			udp := udpserver.NewUDPClientServer(localListen, remote,
 				privacy.NewMethodWithName(config.Method),
-				privacy.MakeCompressKey(config.Password))
+				privacy.MakeCompressKey(config.Password), nil)
 			udp.Run()
 		}()
-		ss := socks5server.NewServer(sconf)
+		ss := socks5server.NewServer(sconf, nil)
 		ss.Serve()
 
 	}

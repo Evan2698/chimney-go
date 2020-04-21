@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strings"
 
+	"chimney-go/mobile"
 	"chimney-go/privacy"
 	"chimney-go/socketcore"
 	"chimney-go/socks5client"
@@ -70,10 +71,11 @@ type serverHolder struct {
 	I             privacy.EncryptThings
 	CC            *socketcore.ClientConfig
 	Tm            uint32
+	ProtectFun    mobile.ProtectSocket
 }
 
 //NewServer ...
-func NewServer(settings *SConfig) Server {
+func NewServer(settings *SConfig, f mobile.ProtectSocket) Server {
 
 	return &serverHolder{
 		ServerAddress: settings.ServerAddress,
@@ -84,6 +86,7 @@ func NewServer(settings *SConfig) Server {
 		I:             settings.I,
 		CC:            settings.CC,
 		Tm:            settings.Tm,
+		ProtectFun:    f,
 	}
 }
 
@@ -404,7 +407,7 @@ func (s *serverHolder) buildClient(conn net.Conn, sa *socketcore.Socks5Addr) (ne
 
 func (s *serverHolder) buildSocksClient(conn net.Conn, socks *socketcore.Socks5Addr) (net.Conn, error) {
 	defer utils.Trace("buildSocksClient")()
-	client := socks5client.NewClient(s.CC)
+	client := socks5client.NewClient(s.CC, s.ProtectFun)
 	return client.Dial(s.CC.Network, socks.String())
 }
 
