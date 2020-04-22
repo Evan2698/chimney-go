@@ -77,30 +77,30 @@ func (h *udpHandler) fetchSocksData(conn core.UDPConn, remoteConn net.Conn, targ
 		core.FreeBytes(buf)
 		h.Close(conn)
 	}()
-	for {
-		n, err := remoteConn.Read(buf)
-		if err != nil {
-			log.Println(err, "read from socks failed")
-			return
-		}
 
-		raw := buf[:n]
-
-		src, err := takeOffHeader(raw)
-		if err != nil {
-			log.Println(err, "take off header failed!!")
-			return
-		}
-
-		n, err = conn.WriteFrom(src, target)
-		if err != nil {
-			log.Println(err, "write tun failed!!")
-			return
-		}
-		if target.Port == dns.COMMON_DNS_PORT {
-			h.dnsCache.Store(raw)
-		}
+	n, err := remoteConn.Read(buf)
+	if err != nil {
+		log.Println(err, "read from socks failed")
+		return
 	}
+
+	raw := buf[:n]
+
+	src, err := takeOffHeader(raw)
+	if err != nil {
+		log.Println(err, "take off header failed!!")
+		return
+	}
+
+	n, err = conn.WriteFrom(src, target)
+	if err != nil {
+		log.Println(err, "write tun failed!!")
+		return
+	}
+	if target.Port == dns.COMMON_DNS_PORT {
+		h.dnsCache.Store(raw)
+	}
+
 }
 
 func takeOffHeader(src []byte) (raw []byte, err error) {
