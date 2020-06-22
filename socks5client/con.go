@@ -50,7 +50,7 @@ func buildQuicSocket(host, network string, tm uint32) (con net.Conn, err error) 
 
 	stream, err := session.OpenStreamSync(context.Background())
 	if err != nil {
-		session.Close()
+		session.CloseWithError(0x12, "ok")
 		log.Println("create quick socket stream failed", err)
 		return nil, err
 	}

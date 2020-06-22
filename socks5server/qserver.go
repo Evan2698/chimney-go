@@ -59,7 +59,7 @@ func generateTLSConfig() *tls.Config {
 
 func (s *serverHolder) serveQuicSession(session quic.Session) {
 	defer func() {
-		session.Close()
+		session.CloseWithError(0x12, "ok")
 	}()
 	defer func() {
 		if err := recover(); err != nil {

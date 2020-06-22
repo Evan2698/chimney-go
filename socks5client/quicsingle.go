@@ -40,7 +40,7 @@ func destoryQuicInstance() {
 	if ks.instance != nil {
 		ks.lock.Lock()
 		if ks.instance != nil {
-			ks.instance.Close()
+			ks.instance.CloseWithError(0x12, "ok")
 			ks.instance = nil
 		}
 		ks.lock.Unlock()
