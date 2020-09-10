@@ -114,6 +114,10 @@ func newTCPConn(pcb *C.struct_tcp_pcb, handler TCPConnHandler) (TCPConn, error) 
 			conn.Abort()
 		} else {
 			conn.Lock()
+			if conn.state != tcpConnecting {
+				conn.Unlock()
+				return
+			}
 			conn.state = tcpConnected
 			conn.Unlock()
 
@@ -158,11 +162,11 @@ func (conn *tcpConn) receiveCheck() error {
 	case tcpNewConn:
 		fallthrough
 	case tcpConnecting:
-		fallthrough
+		return NewLWIPError(LWIP_ERR_CONN)
 	case tcpAborting:
 		fallthrough
 	case tcpClosed:
-		return NewLWIPError(LWIP_ERR_CONN)
+		fallthrough
 	case tcpReceiveClosed:
 		fallthrough
 	case tcpClosing:
@@ -430,10 +434,15 @@ func (conn *tcpConn) abortInternal() {
 
 func (conn *tcpConn) Abort() {
 	conn.Lock()
-	defer conn.Unlock()
+	// If it's in tcpErrored state, the pcb was already freed.
+	if conn.state < tcpAborting {
+		conn.state = tcpAborting
+	}
+	conn.Unlock()
 
-	conn.state = tcpAborting
-	conn.canWrite.Broadcast()
+	lwipMutex.Lock()
+	conn.checkState()
+	lwipMutex.Unlock()
 }
 
 func (conn *tcpConn) Err(err error) {
