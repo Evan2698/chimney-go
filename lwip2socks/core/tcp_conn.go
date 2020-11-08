@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net"
 	"sync"
@@ -175,9 +176,9 @@ func (conn *tcpConn) receiveCheck() error {
 		conn.abortInternal()
 		return NewLWIPError(LWIP_ERR_ABRT)
 	default:
-		panic("unexpected error")
+		log.Print("unexpected error")
+		return NewLWIPError(C.ERR_ABRT)
 	}
-	return nil
 }
 
 func (conn *tcpConn) Receive(data []byte) error {
@@ -249,9 +250,9 @@ func (conn *tcpConn) writeCheck() error {
 	case tcpAborting:
 		return io.ErrClosedPipe
 	default:
-		panic("unexpected error")
+		log.Print("unexpected error")
+		return io.ErrShortWrite
 	}
-	return nil
 }
 
 func (conn *tcpConn) Write(data []byte) (int, error) {

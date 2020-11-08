@@ -6,6 +6,7 @@ package core
 */
 import "C"
 import (
+	"log"
 	"unsafe"
 )
 
@@ -24,7 +25,8 @@ func udpRecvFn(arg unsafe.Pointer, pcb *C.struct_udp_pcb, p *C.struct_pbuf, addr
 	srcAddr := ParseUDPAddr(ipAddrNTOA(*addr), uint16(port))
 	dstAddr := ParseUDPAddr(ipAddrNTOA(*destAddr), uint16(destPort))
 	if srcAddr == nil || dstAddr == nil {
-		panic("invalid UDP address")
+		log.Print("invalid UDP address")
+		return
 	}
 
 	connId := udpConnId{
@@ -33,7 +35,8 @@ func udpRecvFn(arg unsafe.Pointer, pcb *C.struct_udp_pcb, p *C.struct_pbuf, addr
 	conn, found := udpConns.Load(connId)
 	if !found {
 		if udpConnHandler == nil {
-			panic("must register a UDP connection handler")
+			log.Print("must register a UDP connection handler")
+			return
 		}
 		var err error
 		conn, err = newUDPConn(pcb,

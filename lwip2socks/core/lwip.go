@@ -10,6 +10,7 @@ import "C"
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
 	"time"
 	"unsafe"
@@ -40,7 +41,8 @@ type lwipStack struct {
 func NewLWIPStack() LWIPStack {
 	tcpPCB := C.tcp_new()
 	if tcpPCB == nil {
-		panic("tcp_new return nil")
+		log.Print("tcp_new return nil")
+		return nil
 	}
 
 	err := C.tcp_bind(tcpPCB, C.IP_ADDR_ANY, 0)
@@ -48,29 +50,36 @@ func NewLWIPStack() LWIPStack {
 	case C.ERR_OK:
 		break
 	case C.ERR_VAL:
-		panic("invalid PCB state")
+		log.Print("invalid PCB state")
+		return nil
+
 	case C.ERR_USE:
-		panic("port in use")
+		log.Print("port in use")
+		return nil
 	default:
 		C.memp_free(C.MEMP_TCP_PCB, unsafe.Pointer(tcpPCB))
-		panic("unknown tcp_bind return value")
+		log.Print("unknown tcp_bind return value")
+		return nil
 	}
 
 	tcpPCB = C.tcp_listen_with_backlog(tcpPCB, C.TCP_DEFAULT_LISTEN_BACKLOG)
 	if tcpPCB == nil {
-		panic("can not allocate tcp pcb")
+		log.Print("can not allocate tcp pcb")
+		return nil
 	}
 
 	setTCPAcceptCallback(tcpPCB)
 
 	udpPCB := C.udp_new()
 	if udpPCB == nil {
-		panic("could not allocate udp pcb")
+		log.Print("could not allocate udp pcb")
+		return nil
 	}
 
 	err = C.udp_bind(udpPCB, C.IP_ADDR_ANY, 0)
 	if err != C.ERR_OK {
-		panic("address already in use")
+		log.Print("address already in use")
+		return nil
 	}
 
 	setUDPRecvCallback(udpPCB, nil)
@@ -125,6 +134,8 @@ func (s *lwipStack) RestartTimeouts() {
 // Note this function will not free objects allocated in lwIP initialization
 // stage, e.g. the loop interface.
 func (s *lwipStack) Close() error {
+
+	log.Print("Close lwipStack..............")
 	// Stop firing timer events.
 	s.cancel()
 
@@ -149,7 +160,7 @@ func (s *lwipStack) Close() error {
 	C.tcp_close(s.tpcb) // FIXME handle error
 	C.udp_remove(s.upcb)
 	lwipMutex.Unlock()
-
+	log.Print("lwipStack Closed!..............")
 	return nil
 }
 

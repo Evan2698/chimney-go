@@ -19,6 +19,7 @@ import (
 	"crypto/cipher"
 	"encoding/binary"
 	"errors"
+	"log"
 	"unsafe"
 )
 
@@ -185,7 +186,7 @@ func (s *stream) init(key []byte, nonce []byte, rounds uint8) {
 		s.state[15] = binary.LittleEndian.Uint32(nonce[12:])
 	default:
 		// Never happens, both ctors validate the nonce length.
-		panic("invalid nonce size")
+		log.Print("invalid nonce size")
 	}
 
 	s.rounds = rounds
