@@ -94,11 +94,17 @@ func stopChimney() {
 
 var dnsCache = cache.NewDNSCache()
 
-var lwipWriter = core.NewLWIPStack()
+var lwipWriter core.LWIPStack = nil
 
 var tun *os.File
 
 func startLwIP(fd int) {
+	lwipWriter = core.NewLWIPStack()
+	if lwipWriter == nil {
+		log.Println("fetal error! create lwip stack failed!")
+		return
+	}
+
 	tun = os.NewFile(uintptr(fd), "")
 
 	core.RegisterTCPConnHandler(socks.NewTCPHandler("127.0.0.1", 9999))
@@ -123,4 +129,9 @@ func stopLwIP() {
 		tun = nil
 	}
 	time.Sleep(2 * time.Second)
+
+	if lwipWriter != nil {
+		lwipWriter.Close()
+		lwipWriter = nil
+	}
 }
