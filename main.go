@@ -22,9 +22,6 @@ import (
 var s *bool
 
 func main() {
-	/*	go func() {
-		http.ListenAndServe("0.0.0.0:8899", nil)
-	}()*/
 	var configpath string
 	cpu := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpu * 4)
@@ -116,14 +113,6 @@ func main() {
 			CC:            settings,
 			Tm:            config.Timeout,
 		}
-		/*go func() {
-			localListen := net.JoinHostPort(config.Local, strconv.Itoa(int(config.LocalUDP)))
-			remote := net.JoinHostPort(config.Server, strconv.Itoa(int(config.UDPPort)))
-			udp := udpserver.NewUDPClientServer(localListen, remote,
-				privacy.NewMethodWithName(config.Method),
-				privacy.MakeCompressKey(config.Password), nil)
-			udp.Run()
-		}()*/
 		ss := socks5server.NewServer(sconf, nil)
 		ss.Serve()
 
