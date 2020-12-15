@@ -20,6 +20,7 @@ const (
 	socks5Version          uint8 = 0x5
 	socks5NoAuth           uint8 = 0x0
 	socks5AuthWithUserPass uint8 = 0x2
+	socks5ReplySuccess     uint8 = 0x0
 )
 
 const (
@@ -53,14 +54,17 @@ func LaunchServer(address, password string) error {
 		go handleSession(sess)
 	}
 
+	log.Println("server exit!!!")
+
+	return nil
 }
 
 func handleSession(s quic.Session) {
 
-	defer sess.CloseWithError(0x34, "Error ocurred!!!")
+	defer s.CloseWithError(0x34, "Error ocurred!!!")
 	c, _ := context.WithTimeout(context.Background(), time.Hour*1)
 	for {
-		stream, err := sess.AcceptStream(c)
+		stream, err := s.AcceptStream(c)
 		if err != nil {
 			stream.Close()
 			log.Println("Accept Stream failed!!!", err)
@@ -125,7 +129,7 @@ func echoHello(conn io.ReadWriteCloser) error {
 	}
 
 	welcome := []byte{socks5Version, 1, socks5NoAuth}
-	err := conn.Write(welcome)
+	_, err = conn.Write(welcome)
 	log.Println("hello write no auth:", err)
 	return err
 }
@@ -153,6 +157,7 @@ func handleConnectCommand(conn io.ReadWriteCloser) (io.ReadWriteCloser, error) {
 		log.Println("cmd protocol is incorrect")
 		return nil, errors.New("cmd protocol is incorrect")
 	}
+	var target io.ReadWriteCloser
 	switch cmd[1] {
 	case socks5CMDConnect:
 		target, err = responseCommandConnect(conn, cmd)
@@ -178,13 +183,12 @@ func handleConnectCommand(conn io.ReadWriteCloser) (io.ReadWriteCloser, error) {
 
 func responseCommandConnect(conn io.ReadWriteCloser, cmd []byte) (io.ReadWriteCloser, error) {
 
-	AddressType = cmd[3]
 	content := cmd[4:]
 	port := utils.Bytes2Uint16(content[len(content)-2:])
 	var addr string
 
 	if cmd[3] == socks5AddressIPV4 || cmd[3] == socks5AddressIPV6 {
-		addr = net.IP(content[:len(content)-2])
+		addr = net.IP(content[:len(content)-2]).String()
 	} else if cmd[3] == socks5AddressDomain {
 		addr = string(content[1 : len(content)-2])
 	} else {
@@ -192,7 +196,7 @@ func responseCommandConnect(conn io.ReadWriteCloser, cmd []byte) (io.ReadWriteCl
 		return nil, errors.New("connect command is incorrect")
 	}
 
-	host := net.JoinHostPort(add, strconv.Itoa(int(port)))
+	host := net.JoinHostPort(addr, strconv.Itoa(int(port)))
 
 	log.Println("Connect Address:", host)
 
@@ -203,15 +207,15 @@ func responseCommandConnect(conn io.ReadWriteCloser, cmd []byte) (io.ReadWriteCl
 	}
 
 	peerAddress := target.LocalAddr().String()
-	s, p, err := net.SplitHostPort(host)
+	s, p, err := net.SplitHostPort(peerAddress)
 	if err != nil {
 		target.Close()
 		return nil, err
 	}
 
 	np, _ := strconv.Atoi(p)
-	port := uint16(np)
-	atype = 0x1
+	port = uint16(np)
+	atype := 0x1
 	IPvX := net.ParseIP(s)
 	if IPvX == nil {
 		atype = 0x3
@@ -221,13 +225,13 @@ func responseCommandConnect(conn io.ReadWriteCloser, cmd []byte) (io.ReadWriteCl
 	}
 
 	var op bytes.Buffer
-	op.Write([]byte{socks5Version, socks5ReplySuccess, 0x00, atype})
+	op.Write([]byte{socks5Version, socks5ReplySuccess, 0x00, byte(atype)})
 	if atype == 0x3 {
 		op.WriteByte(byte(len(s)))
 	} else if atype == 0x1 {
-		op.Write(a.IPvX.To4())
+		op.Write(IPvX.To4())
 	} else {
-		op.Write(a.IPvX)
+		op.Write(IPvX)
 	}
 	op.Write(utils.Port2Bytes(port))
 	conn.Write(op.Bytes())

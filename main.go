@@ -2,9 +2,12 @@ package main
 
 import (
 	"chimney-go/configure"
+	"chimney-go/overquic"
 	"flag"
 	"fmt"
 	"log"
+	"net"
+	"strconv"
 
 	"os"
 	"path/filepath"
@@ -41,9 +44,18 @@ func main() {
 	if *s {
 		// start quic server
 		log.Println("I AM A SERVER!!")
+		s := net.JoinHostPort(config.Server, strconv.Itoa(int(config.ServerPort)))
+		log.Println("listen on: ", s)
+		overquic.LaunchServer(s, config.Password)
 
 	} else {
 		log.Println("I AM A CLIENT!!")
-
+		c, err := overquic.NewClient(config)
+		if err != nil {
+			log.Println("create client failed!!")
+			return
+		}
+		defer c.Close()
+		c.Serve()
 	}
 }
