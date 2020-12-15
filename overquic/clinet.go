@@ -2,6 +2,7 @@ package overquic
 
 import (
 	"chimney-go/configure"
+	"chimney-go/utils"
 	"context"
 	"crypto/tls"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/lucas-clemente/quic-go"
 )
@@ -41,11 +43,13 @@ func NewClient(s *configure.Settings) (*Client, error) {
 }
 
 func (c *Client) Serve() error {
+
 	l, err := net.Listen("tcp", c.Local)
 	if err != nil {
 		log.Println("listen failed ", err)
 		return err
 	}
+	log.Println("client listen on: ", c.Local)
 
 	defer l.Close()
 
@@ -55,7 +59,7 @@ func (c *Client) Serve() error {
 			log.Println(" accept failed ", err)
 			break
 		}
-
+		utils.SetSocketTimeout(con, uint32(c.Tm))
 		go c.serveOn(con)
 	}
 
@@ -76,8 +80,15 @@ func (c *Client) serveOn(con io.ReadWriteCloser) {
 		con.Close()
 	}()
 
+	readTimeout := time.Duration(c.Tm) * time.Second
+	v := time.Now().Add(readTimeout)
+	stream.SetReadDeadline(v)
+	stream.SetWriteDeadline(v)
+	stream.SetDeadline(v)
+
 	var wait sync.WaitGroup
 	wait.Add(1)
+
 	go func(w *sync.WaitGroup, proxy, c io.ReadWriteCloser) {
 
 		defer w.Done()

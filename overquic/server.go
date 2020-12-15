@@ -11,7 +11,6 @@ import (
 	"net"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/lucas-clemente/quic-go"
 )
@@ -43,10 +42,8 @@ func LaunchServer(address, password string) error {
 	}
 
 	defer listener.Close()
-
-	c, _ := context.WithTimeout(context.Background(), time.Hour*56)
 	for {
-		sess, err := listener.Accept(c)
+		sess, err := listener.Accept(context.Background())
 		if err != nil {
 			log.Println("session listen failed!!!", err)
 			break
@@ -62,11 +59,10 @@ func LaunchServer(address, password string) error {
 func handleSession(s quic.Session) {
 
 	defer s.CloseWithError(0x34, "Error ocurred!!!")
-	c, _ := context.WithTimeout(context.Background(), time.Hour*1)
+	//c, _ := context.WithTimeout(context.Background(), time.Hour*1)
 	for {
-		stream, err := s.AcceptStream(c)
+		stream, err := s.AcceptStream(context.Background())
 		if err != nil {
-			stream.Close()
 			log.Println("Accept Stream failed!!!", err)
 			break
 		}
@@ -120,6 +116,7 @@ func echoHello(conn io.ReadWriteCloser) error {
 		log.Print("read hello failed:", err)
 		return err
 	}
+	log.Println(" F: ", tmpBuffer[:n])
 
 	if n < 2 || tmpBuffer[0] != socks5Version {
 		log.Println("server protocol format is incorrect : ", tmpBuffer[:n])
@@ -128,9 +125,10 @@ func echoHello(conn io.ReadWriteCloser) error {
 		return errors.New("server protocol format is incorrect")
 	}
 
-	welcome := []byte{socks5Version, 1, socks5NoAuth}
+	welcome := []byte{socks5Version, socks5NoAuth}
+	log.Println(" Welcome: ", welcome)
 	_, err = conn.Write(welcome)
-	log.Println("hello write no auth:", err)
+	log.Println("reply to remote no auth:", err)
 	return err
 }
 
@@ -144,9 +142,9 @@ func handleConnectCommand(conn io.ReadWriteCloser) (io.ReadWriteCloser, error) {
 		log.Println("read connect command failed", err)
 		return nil, err
 	}
+	log.Println("cmd: ", tmpBuffer[:n])
 
 	cmd := tmpBuffer[:n]
-	log.Println("connect: ", tmpBuffer[:n])
 	if len(cmd) < 4 {
 		conn.Write([]byte{0x05, 0x0A, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 		log.Println("cmd length is too short!!")
