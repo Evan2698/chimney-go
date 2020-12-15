@@ -59,7 +59,6 @@ func LaunchServer(address, password string) error {
 func handleSession(s quic.Session) {
 
 	defer s.CloseWithError(0x34, "Error ocurred!!!")
-	//c, _ := context.WithTimeout(context.Background(), time.Hour*1)
 	for {
 		stream, err := s.AcceptStream(context.Background())
 		if err != nil {
@@ -68,7 +67,6 @@ func handleSession(s quic.Session) {
 		}
 
 		go handleServe(stream)
-
 	}
 
 }

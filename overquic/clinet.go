@@ -16,30 +16,49 @@ import (
 )
 
 type Client struct {
-	Session quic.Session
-	Tm      int
-	Local   string
+	Session     quic.Session
+	Tm          int
+	Local       string
+	SessionLock sync.RWMutex
+	Remote      string
+	Password    string
 }
 
 func NewClient(s *configure.Settings) (*Client, error) {
-	tlsConf := &tls.Config{
-		InsecureSkipVerify: true,
-		NextProtos:         []string{s.Password},
-	}
 
 	addr := net.JoinHostPort(s.Server, strconv.Itoa(int(s.ServerPort)))
-	session, err := quic.DialAddr(addr, tlsConf, nil)
-	if err != nil {
+	c := &Client{
+		Tm:       int(s.Timeout),
+		Local:    net.JoinHostPort(s.Local, strconv.Itoa(int(s.LocalPort))),
+		Remote:   addr,
+		Password: s.Password,
+	}
 
+	se, err := c.TryGetSession()
+	if err != nil {
+		log.Println("create session failed! ", err)
+		return nil, err
+	}
+
+	c.SessionLock.Lock()
+	c.Session = se
+	c.SessionLock.Unlock()
+	return c, nil
+}
+
+func (c *Client) TryGetSession() (quic.Session, error) {
+	tlsConf := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{c.Password},
+	}
+
+	session, err := quic.DialAddr(c.Remote, tlsConf, nil)
+	if err != nil {
 		log.Println("connect server failed!", err)
 		return nil, err
 	}
 
-	return &Client{
-		Session: session,
-		Tm:      int(s.Timeout),
-		Local:   net.JoinHostPort(s.Local, strconv.Itoa(int(s.LocalPort))),
-	}, nil
+	return session, nil
 }
 
 func (c *Client) Serve() error {
@@ -67,12 +86,31 @@ func (c *Client) Serve() error {
 }
 
 func (c *Client) serveOn(con io.ReadWriteCloser) {
-
+	c.SessionLock.RLock()
 	stream, err := c.Session.OpenStreamSync(context.Background())
+	c.SessionLock.RUnlock()
 	if err != nil {
-		log.Println("open remote stream failed", err)
-		con.Close()
-		return
+		log.Println("open remote stream failed,will create new stream", err)
+		ss, e := c.TryGetSession()
+		if e == nil {
+			c.SessionLock.Lock()
+			c.Session.CloseWithError(0x1, "error!")
+			c.Session = ss
+			c.SessionLock.Unlock()
+		} else {
+			con.Close()
+			log.Fatal("can not Dail to server", e)
+			return
+		}
+
+		c.SessionLock.RLock()
+		stream, e = c.Session.OpenStreamSync(context.Background())
+		c.SessionLock.RUnlock()
+		if e != nil {
+			con.Close()
+			log.Fatal("can not Dail to server", e)
+			return
+		}
 	}
 
 	defer func() {
