@@ -1,11 +1,11 @@
-package socketcore
+package common
 
 import (
 	"sync"
 )
 
 const (
-	pageSize = 2304
+	pageSize = 512
 )
 
 var (
