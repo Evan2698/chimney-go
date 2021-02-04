@@ -207,11 +207,13 @@ func (s *serverHolder) proxy(dst, src net.Conn, wg *sync.WaitGroup) {
 	for {
 		n, err := src.Read(tempBuffer)
 		if err != nil {
+			src.Close()
 			log.Println("read src failed ", err)
 			break
 		}
 		_, err = dst.Write(tempBuffer[:n])
 		if err != nil {
+			dst.Close()
 			log.Println("write dst failed ", err)
 			break
 		}
@@ -230,12 +232,14 @@ func (s *serverHolder) proxyRead(dst net.Conn, src socketcore.ISocket, wg *sync.
 	for {
 		out, err := src.Read()
 		if err != nil {
+			src.Close()
 			log.Println("read failed from SSL: ", err)
 			break
 		}
 
 		_, err = dst.Write(out)
 		if err != nil {
+			dst.Close()
 			log.Println("write bytes to raw failed  ", err)
 			break
 		}
@@ -258,12 +262,14 @@ func (s *serverHolder) proxyWrite(dst socketcore.ISocket, src net.Conn, wg *sync
 	for {
 		n, err := src.Read(readBuffer[:])
 		if err != nil {
+			src.Close()
 			log.Println("read content failed: ", err)
 			break
 		}
 
 		err = dst.Write(readBuffer[:n])
 		if err != nil {
+			dst.Close()
 			log.Println("write to SSL failed: ", err)
 			break
 		}
