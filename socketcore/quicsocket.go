@@ -13,23 +13,23 @@ type QuicSocket interface {
 }
 
 type quicSocketHolder struct {
-	Session quic.Session
+	//Session quic.Session
 	Stream  quic.Stream
 	destory bool
 }
 
 //NewQuicSocket ...
-func NewQuicSocket(s quic.Session, socket quic.Stream) QuicSocket {
+func NewQuicSocket(socket quic.Stream) QuicSocket {
 	return &quicSocketHolder{
-		Session: s,
-		Stream:  socket,
+		//Session: s,
+		Stream: socket,
 	}
 }
 
 //NewClientSocket ...
-func NewClientSocket(s quic.Session, socket quic.Stream) QuicSocket {
+func NewClientSocket(socket quic.Stream) QuicSocket {
 	return &quicSocketHolder{
-		Session: s,
+		//Session: s,
 		Stream:  socket,
 		destory: true,
 	}
@@ -53,20 +53,15 @@ func (s *quicSocketHolder) Close() error {
 		s.Stream.Close()
 	}
 	if s.destory {
-		if s.Session != nil {
-			s.Session.CloseWithError(0x12, "ok")
-		}
+
 	}
 	s.Stream = nil
-	s.Session = nil
+
 	return nil
 }
 
 // LocalAddr returns the local network address.
 func (s *quicSocketHolder) LocalAddr() net.Addr {
-	if s.Session != nil {
-		return s.Session.LocalAddr()
-	}
 
 	return &net.TCPAddr{
 		IP:   []byte("127.0.0.1"),
@@ -76,9 +71,6 @@ func (s *quicSocketHolder) LocalAddr() net.Addr {
 
 // RemoteAddr returns the remote network address.
 func (s *quicSocketHolder) RemoteAddr() net.Addr {
-	if s.Session != nil {
-		return s.Session.RemoteAddr()
-	}
 
 	return &net.TCPAddr{
 		IP:   []byte("127.0.0.1"),

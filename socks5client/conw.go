@@ -55,7 +55,7 @@ func buildQuicSocket(host, network string, tm uint32) (con net.Conn, err error) 
 		return nil, err
 	}
 	log.Print("create socket(quic) socket success!")
-	v := socketcore.NewClientSocket(session, stream)
+	v := socketcore.NewClientSocket(stream)
 	socketcore.SetSocketTimeout(v, tm)
 	return v, nil
 }

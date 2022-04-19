@@ -23,12 +23,12 @@ func (s *serverHolder) runQuicServer() {
 	}
 
 	for {
-		session, err := listener.Accept(context.Background())
+		_, err := listener.Accept(context.Background())
 		if err != nil {
 			log.Println("quic accept session failed ", err)
 			break
 		}
-		go s.serveQuicSession(session)
+		go s.serveQuicSession()
 	}
 
 }
@@ -57,23 +57,23 @@ func generateTLSConfig() *tls.Config {
 	}
 }
 
-func (s *serverHolder) serveQuicSession(session quic.Session) {
-	defer func() {
-		session.CloseWithError(0x12, "ok")
-	}()
-	defer func() {
-		if err := recover(); err != nil {
-			log.Println(" fatal error on serveQuicSession: ", err)
-		}
-	}()
+func (s *serverHolder) serveQuicSession() {
+	// defer func() {
+	// 	session.CloseWithError(0x12, "ok")
+	// }()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Println(" fatal error on serveQuicSession: ", err)
+	// 	}
+	// }()
 
-	for {
-		stream, err := session.AcceptStream(context.Background())
-		if err != nil {
-			log.Println("quic accept stream failed", session.LocalAddr().String())
-			break
-		}
-		v := socketcore.NewQuicSocket(session, stream)
-		go s.serveOn(v)
-	}
+	// for {
+	// 	stream, err := session.AcceptStream(context.Background())
+	// 	if err != nil {
+	// 		log.Println("quic accept stream failed", session.LocalAddr().String())
+	// 		break
+	// 	}
+	// 	v := socketcore.NewQuicSocket(session, stream)
+	// 	go s.serveOn(v)
+	// }
 }
