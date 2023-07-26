@@ -86,7 +86,7 @@ func (p *ploy) ToBytes() []byte {
 	return op.Bytes()
 }
 
-//From bytes
+// From bytes
 func (p *ploy) FromBytes(v []byte) error {
 	op := bytes.NewBuffer(v)
 	lvl := op.Next(1)

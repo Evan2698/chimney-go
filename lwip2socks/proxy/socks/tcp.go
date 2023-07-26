@@ -17,7 +17,7 @@ type tcpHandler struct {
 	proxyPort uint16
 }
 
-//NewTCPHandler ...
+// NewTCPHandler ...
 func NewTCPHandler(proxyHost string, proxyPort uint16) core.TCPConnHandler {
 	return &tcpHandler{
 		proxyHost: proxyHost,

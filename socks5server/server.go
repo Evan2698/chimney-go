@@ -2,7 +2,6 @@ package socks5server
 
 import (
 	"bytes"
-	"strings"
 
 	"chimney-go/mobile"
 	"chimney-go/privacy"
@@ -61,7 +60,7 @@ type SConfig struct {
 	Tm            uint32
 }
 
-//Server ..
+// Server ..
 type serverHolder struct {
 	tmpBuffer     []byte
 	ServerAddress string
@@ -76,7 +75,7 @@ type serverHolder struct {
 	Flag          bool
 }
 
-//NewServer ...
+// NewServer ...
 func NewServer(settings *SConfig, f mobile.ProtectSocket) Server {
 
 	return &serverHolder{
@@ -97,16 +96,10 @@ func (s *serverHolder) Stop() {
 	s.Flag = true
 }
 
-//Serve ..
+// Serve ..
 func (s *serverHolder) Serve() error {
 
 	log.Println("which network: ", s.Network)
-
-	if s.CC == nil && strings.Contains(s.Network, socketcore.QUIC) {
-		log.Println("server run on " + s.ServerAddress + " with quic protocol.")
-		s.runQuicServer()
-		return nil
-	}
 
 	// to TCP
 	log.Println("server run on " + s.ServerAddress + " with tcp protocol.")
