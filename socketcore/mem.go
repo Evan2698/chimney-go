@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	pageSize = 2304
+	pageSize = 512 * 5
 )
 
 var (
