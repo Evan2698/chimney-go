@@ -1,5 +1,5 @@
 # chimney-go
-## As you known, this project is a vpn source code for everyone.
+## As you know, this project is a vpn source code for everyone.
 
 
 # Summary
