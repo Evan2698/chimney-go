@@ -19,7 +19,9 @@
   ### Build android component
    for android : https://github.com/Evan2698/MyChimney
 
-   
+eg:
+   gomobile bind -target=android  -ldflags="-s -w"     -androidapi 32  /home/evan/GoWorks/src/chimney-go/tun4socks
+
 
 # About
  ☺ ☺ ☺ ☺ ☺ 
